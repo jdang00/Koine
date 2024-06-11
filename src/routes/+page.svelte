@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as Popover from '$lib/components/ui/popover';
+	import { ArrowLeft } from 'lucide-svelte';
 
 	import { getAllBooks, getChapters, getVerses } from './api/utils';
 
@@ -9,10 +10,15 @@
 	let verses: string[] = [];
 	let isLoading = false;
 	let books: string[] = [];
-	let chapterButtons: string[] = [];
+	let chapters: string[] = [];
 	let verseButtons: string[] = [];
 
 	let selectedBook = '';
+
+	function handleBookClick(book: string) {
+		selectedBook = book;
+		chapters = getChapters(selectedBook);
+	}
 
 	async function fetchVerse(book: string, chapterVerse: string, version: string) {
 		const response = await fetch(`/api/${book} ${chapterVerse} ${version}`);
@@ -41,17 +47,28 @@
 			<Popover.Root>
 				<Popover.Trigger><Button variant="ghost">1 Timothy 2:12</Button></Popover.Trigger>
 				<Popover.Content class="grid grid-cols-6">
-					<div class="col-span-6">
-						<h1 class="text-xl font-semibold text-center mb-6 mt-3">Old Testament</h1>
-					</div>
-					{#each books as book}
-						{#if book === 'Matthew'}
-							<div class="col-span-6 border-t my-3">
-								<h1 class="text-xl font-semibold text-center my-6">New Testament</h1>
-							</div>
-						{/if}
-						<Button variant="ghost">{book}</Button>
-					{/each}
+					{#if !selectedBook}
+						<div class="col-span-6">
+							<h1 class="text-xl font-semibold text-center mb-6 mt-3">Old Testament</h1>
+						</div>
+						{#each books as book}
+							{#if book === 'Matthew'}
+								<div class="col-span-6 border-t my-3">
+									<h1 class="text-xl font-semibold text-center my-6">New Testament</h1>
+								</div>
+							{/if}
+							<Button variant="ghost" on:click={() => handleBookClick(book)}>{book}</Button>
+						{/each}
+					{:else}
+						<div class="col-span-6 flex flex-row gap-2">
+							<Button variant="ghost" on:click={() => (selectedBook = '')}><ArrowLeft /></Button>
+							<h1 class="text-xl font-semibold text-center self-center">{selectedBook}</h1>
+						</div>
+
+						{#each chapters as chapter}
+							<Button variant="ghost">{chapter}</Button>
+						{/each}
+					{/if}
 				</Popover.Content>
 			</Popover.Root>
 		</div>
