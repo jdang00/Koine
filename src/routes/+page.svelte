@@ -14,10 +14,23 @@
 	let verseButtons: string[] = [];
 
 	let selectedBook = '';
+	let selectedChapters = '';
+	let selectedVerse = '';
+
+	let headerText = '';
+
+	function updateHeader() {
+		headerText = `${selectedBook} ${selectedChapters}:${selectedChapters}`;
+	}
 
 	function handleBookClick(book: string) {
 		selectedBook = book;
 		chapters = getChapters(selectedBook);
+	}
+
+	function handleChapterClick(chapter: string) {
+		selectedChapters = chapter;
+		verseButtons = getVerses(selectedBook, selectedChapters);
 	}
 
 	async function fetchVerse(book: string, chapterVerse: string, version: string) {
@@ -26,17 +39,28 @@
 		return data.text;
 	}
 
-	async function populateVerses() {
+	async function populateVerses(book: string, chapter: string, verse: string, firstLoad: boolean) {
+		if (firstLoad) {
+		} else {
+			selectedBook = book;
+			selectedChapters = chapter;
+			selectedVerse = verse;
+		}
+		const formattedBook = book.replace(/\s+/g, '').toLowerCase();
+
 		isLoading = true;
-		for (const version of versions) {
-			const verse = await fetchVerse('1tim', '2:12', version);
-			verses.push(verse);
+		verses = [];
+		for (const ver of versions) {
+			const verseText = await fetchVerse(formattedBook, `${chapter}:${verse}`, ver);
+			verses.push(verseText);
+			console.log(verseText);
 		}
 		isLoading = false;
+		updateHeader();
 	}
 
 	onMount(() => {
-		populateVerses();
+		populateVerses('1 Timothy', '2', '12', true);
 		books = getAllBooks();
 	});
 </script>
@@ -45,7 +69,7 @@
 	<header class="py-4 px-12 flex items-center border-b border-gray-200">
 		<div class="flex-1 flex items-center gap-4 justify-center">
 			<Popover.Root>
-				<Popover.Trigger><Button variant="ghost">1 Timothy 2:12</Button></Popover.Trigger>
+				<Popover.Trigger><Button variant="ghost">{headerText}</Button></Popover.Trigger>
 				<Popover.Content class="grid grid-cols-6">
 					{#if !selectedBook}
 						<div class="col-span-6">
@@ -59,14 +83,31 @@
 							{/if}
 							<Button variant="ghost" on:click={() => handleBookClick(book)}>{book}</Button>
 						{/each}
-					{:else}
-						<div class="col-span-6 flex flex-row gap-2">
+					{:else if !selectedChapters}
+						<div class="col-span-6 flex flex-row gap-2 pb-3">
 							<Button variant="ghost" on:click={() => (selectedBook = '')}><ArrowLeft /></Button>
 							<h1 class="text-xl font-semibold text-center self-center">{selectedBook}</h1>
 						</div>
 
 						{#each chapters as chapter}
-							<Button variant="ghost">{chapter}</Button>
+							<Button variant="ghost" on:click={() => handleChapterClick(chapter)}>{chapter}</Button
+							>
+						{/each}
+					{:else}
+						<div class="col-span-6 flex flex-row gap-2 pb-3">
+							<Button variant="ghost" on:click={() => (selectedChapters = '')}><ArrowLeft /></Button
+							>
+							<h1 class="text-xl font-semibold text-center self-center">
+								{selectedBook} : {selectedChapters}
+							</h1>
+						</div>
+
+						{#each verseButtons as verse}
+							<Button
+								variant="ghost"
+								on:click={() => populateVerses(selectedBook, selectedChapters, verse, false)}
+								>{verse}</Button
+							>
 						{/each}
 					{/if}
 				</Popover.Content>
