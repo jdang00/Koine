@@ -15,9 +15,8 @@
 
 	let selectedBook = '';
 	let selectedChapters = '';
-	let selectedVerse = '';
 
-	let headerText = '';
+	let headerText = '1 Timothy 2:12';
 
 	function updateHeader() {
 		headerText = `${selectedBook} ${selectedChapters}:${selectedChapters}`;
@@ -40,12 +39,6 @@
 	}
 
 	async function populateVerses(book: string, chapter: string, verse: string, firstLoad: boolean) {
-		if (firstLoad) {
-		} else {
-			selectedBook = book;
-			selectedChapters = chapter;
-			selectedVerse = verse;
-		}
 		const formattedBook = book.replace(/\s+/g, '').toLowerCase();
 
 		isLoading = true;
@@ -56,7 +49,12 @@
 			console.log(verseText);
 		}
 		isLoading = false;
-		updateHeader();
+		if (firstLoad) {
+		} else {
+			selectedBook = book;
+			selectedChapters = chapter;
+			updateHeader();
+		}
 	}
 
 	onMount(() => {
@@ -118,20 +116,22 @@
 		<p>Loading...</p>
 	{:else}
 		<div class="flex-1 flex min-h-screen">
-			{#each verses as verse, i}
-				<div class="flex flex-col">
-					<header class="py-4 px-12 flex items-center border-b border-gray-200">
-						<div class="flex-1 flex items-center gap-4 justify-center">
-							<Button variant="ghost">{versions[i].toUpperCase()}</Button>
-						</div>
-					</header>
-					<div class="flex-1 border-r border-gray-200 overflow-auto">
-						<div class="p-4">
-							<pre class="whitespace-pre-wrap font-mono text-sm">{verse}</pre>
+			<div class="columns-3 gap-0">
+				{#each verses as verse, i}
+					<div class="flex flex-col min-h-screen">
+						<header class="py-4 px-12 flex items-center border-b border-gray-200">
+							<div class="flex-1 flex items-center gap-4 justify-center">
+								<Button variant="ghost">{versions[i].toUpperCase()}</Button>
+							</div>
+						</header>
+						<div class="flex-1 border-r border-gray-200 overflow-auto">
+							<div class="p-4">
+								<pre class="whitespace-pre-wrap font-mono text-sm">{verse}</pre>
+							</div>
 						</div>
 					</div>
-				</div>
-			{/each}
+				{/each}
+			</div>
 		</div>
 	{/if}
 </div>
