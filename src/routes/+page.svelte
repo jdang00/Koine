@@ -92,6 +92,14 @@
 	});
 </script>
 
+<svelte:head>
+	<title>Koine Bible Translation Comparison</title>
+	<meta
+		name="description"
+		content="A Bible comparison tool that is fast, beautiful, and faithful."
+	/>
+</svelte:head>
+
 <div class="flex flex-col h-full">
 	<header class="py-4 px-12 flex items-center border-b border-gray-200">
 		<div class="flex-1 flex items-center gap-4 justify-center">
