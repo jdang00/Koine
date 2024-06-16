@@ -4,6 +4,7 @@
 	import * as Popover from '$lib/components/ui/popover';
 	import { ArrowLeft } from 'lucide-svelte';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
+	import { ArrowRight } from 'lucide-svelte';
 
 	import { getAllBooks, getChapters, getVerses } from './api/utils';
 
@@ -85,6 +86,15 @@
 		}
 	}
 
+	async function nextVerse(verse: string) {
+		if (parseInt(verse) >= getVerses(selectedBook, selectedChapters).length) {
+		} else {
+			let stringNum = parseInt(verse);
+			stringNum++;
+			populateVerses(selectedBook, selectedChapters, stringNum.toString(), false);
+		}
+	}
+
 	onMount(() => {
 		populateVerses('1 Timothy', '2', '12', true);
 
@@ -148,6 +158,7 @@
 				</Popover.Content>
 			</Popover.Root>
 		</div>
+		<Button variant="ghost" on:click={() => nextVerse(selectedVerse)}><ArrowRight /></Button>
 	</header>
 	{#if isLoading}
 		<p>Loading...</p>
