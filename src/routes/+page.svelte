@@ -3,8 +3,11 @@
 	import { Button } from '$lib/components/ui/button';
 	import * as Popover from '$lib/components/ui/popover';
 	import { ArrowLeft } from 'lucide-svelte';
+	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 
 	import { getAllBooks, getChapters, getVerses } from './api/utils';
+
+	let fullVersion = ['kjv', 'niv', 'esv', 'nasb', 'nkjv', 'amp', 'nlt', 'asv', 'bbe'];
 
 	let versions = ['esv', 'kjv', 'niv'];
 	let verses: string[] = [];
@@ -15,11 +18,14 @@
 
 	let selectedBook = '';
 	let selectedChapters = '';
+	let selectedVerse = '';
 
 	let headerText = '1 Timothy 2:12';
 
+	let firstLoadIdentifier = false;
+
 	function updateHeader() {
-		headerText = `${selectedBook} ${selectedChapters}:${selectedChapters}`;
+		headerText = `${selectedBook} ${selectedChapters}:${selectedVerse}`;
 	}
 
 	function handleBookClick(book: string) {
@@ -38,6 +44,26 @@
 		return data.text;
 	}
 
+	async function replaceVerseVersion(
+		book: string,
+		chapter: string,
+		verse: string,
+		index: number,
+		version: string,
+		firstLoad: boolean
+	) {
+		if (!firstLoad) {
+			const verseText = await fetchVerse('1tim', `2:12`, version);
+			verses[index] = verseText;
+			versions[index] = version;
+		} else {
+			const formattedBook = book.replace(/\s+/g, '').toLowerCase();
+			const verseText = await fetchVerse(formattedBook, `${chapter}:${verse}`, version);
+			verses[index] = verseText;
+			versions[index] = version;
+		}
+	}
+
 	async function populateVerses(book: string, chapter: string, verse: string, firstLoad: boolean) {
 		const formattedBook = book.replace(/\s+/g, '').toLowerCase();
 
@@ -46,19 +72,22 @@
 		for (const ver of versions) {
 			const verseText = await fetchVerse(formattedBook, `${chapter}:${verse}`, ver);
 			verses.push(verseText);
-			console.log(verseText);
 		}
 		isLoading = false;
 		if (firstLoad) {
 		} else {
+			firstLoadIdentifier = true;
+
 			selectedBook = book;
 			selectedChapters = chapter;
+			selectedVerse = verse;
 			updateHeader();
 		}
 	}
 
 	onMount(() => {
 		populateVerses('1 Timothy', '2', '12', true);
+
 		books = getAllBooks();
 	});
 </script>
@@ -121,7 +150,30 @@
 					<div class="flex flex-col min-h-screen">
 						<header class="py-4 px-12 flex items-center border-b border-gray-200">
 							<div class="flex-1 flex items-center gap-4 justify-center">
-								<Button variant="ghost">{versions[i].toUpperCase()}</Button>
+								<DropdownMenu.Root>
+									<DropdownMenu.Trigger>
+										<Button variant="ghost">{versions[i].toUpperCase()}</Button>
+									</DropdownMenu.Trigger>
+									<DropdownMenu.Content>
+										<DropdownMenu.Group>
+											{#each fullVersion as version}
+												{#if !(version == versions[i])}
+													<DropdownMenu.Item
+														on:click={() =>
+															replaceVerseVersion(
+																selectedBook,
+																selectedChapters,
+																selectedVerse,
+																i,
+																version,
+																firstLoadIdentifier
+															)}>{version.toUpperCase()}</DropdownMenu.Item
+													>
+												{/if}
+											{/each}
+										</DropdownMenu.Group>
+									</DropdownMenu.Content>
+								</DropdownMenu.Root>
 							</div>
 						</header>
 						<div class="flex-1 border-r border-gray-200 overflow-auto">
